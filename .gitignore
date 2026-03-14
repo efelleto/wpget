@@ -1,5 +1,17 @@
+# Cache e arquivos temporários do Python
 __pycache__/
-build/
-dist/
-*.spec
+*.py[cod]
+*$py.class
+venv/
 .venv/
+
+# Pastas de trabalho do wpget (não devem ir pro GitHub)
+temp/
+depots/
+dist/
+build/
+*.spec
+
+# Logs de erro e auth
+*.log
+Steam Guard/

@@ -4,6 +4,7 @@ import threading
 import re
 import subprocess
 import shutil
+import webbrowser
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import requests
@@ -66,7 +67,7 @@ class WPGetApp(ctk.CTk):
         self.status_label.grid(row=0, column=0, padx=20, pady=(25, 0), sticky="ne")
 
         self.sub_label = ctk.CTkLabel(
-            self, text="workshop wallpaper downloader · wpget.com",
+            self, text="workshop wallpaper downloader",
             font=FONTS["main"], text_color=COLORS["text"]
         )
         self.sub_label.grid(row=1, column=0, padx=20, pady=(0, 20), sticky="nw")
@@ -187,6 +188,14 @@ class WPGetApp(ctk.CTk):
         self.console_box.tag_config("text", foreground=COLORS["text"])
         self.console_box.tag_config("info", foreground="#565f89")
 
+        # Github Support Footer
+        self.github_label = ctk.CTkLabel(
+            self, text="support wpget on github", font=("JetBrains Mono", 10),
+            text_color="#565f89", cursor="hand2"
+        )
+        self.github_label.grid(row=7, column=0, padx=20, pady=(0, 10), sticky="se")
+        self.github_label.bind("<Button-1>", lambda e: webbrowser.open("https://github.com/eduardo/wpget"))
+
         self.after(1000, self.start_auth_process)
         self.log("wpget started.", "success")
 
@@ -295,7 +304,9 @@ class WPGetApp(ctk.CTk):
             if self.auth_instance:
                 self.auth_instance.stop()
         
-        bin_path = resource_path(os.path.join("bin", "linux", "DepotDownloader"))
+        # Detect OS and set correct binary name
+        bin_name = "DepotDownloader.exe" if sys.platform == "win32" else "DepotDownloader"
+        bin_path = resource_path(os.path.join("bin", bin_name))
         
         if not os.path.exists(bin_path):
             self.log(f"depotdownloader not found", "error")
@@ -317,10 +328,14 @@ class WPGetApp(ctk.CTk):
         self.progress_bar.set(0)
         self.progress_status.configure(text="initializing download...")
 
+        # Get correct bin_path for the Downloader
+        bin_name = "DepotDownloader.exe" if sys.platform == "win32" else "DepotDownloader"
+        bin_path = resource_path(os.path.join("bin", bin_name))
+
         def process():
             temp_path = os.path.join(os.getcwd(), "temp", item_id)
             os.makedirs(temp_path, exist_ok=True)
-            dl = Downloader(self.log, progress_callback=self.update_progress)
+            dl = Downloader(self.log, bin_path=bin_path, progress_callback=self.update_progress)
             success = dl.download_item(item_id, temp_path, self.current_steam_user)
             if success:
                 self.after(0, lambda: self._download_success(temp_path))
@@ -352,7 +367,10 @@ class WPGetApp(ctk.CTk):
 
     def open_folder_action(self):
         if self.last_download_path and os.path.exists(self.last_download_path):
-            subprocess.Popen(['xdg-open', self.last_download_path])
+            if sys.platform == "win32":
+                os.startfile(self.last_download_path)
+            else:
+                subprocess.Popen(['xdg-open', self.last_download_path])
 
     def clear_junk_action(self):
         try:

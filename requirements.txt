@@ -1,0 +1,12 @@
+# UI & Assets
+customtkinter==5.2.2
+Pillow==12.1.1
+
+# Network & Scraping
+requests==2.32.5
+beautifulsoup4==4.14.3
+
+# Build Tool 
+pyinstaller==6.19.0
+
+## Only that, enjoy using =)

@@ -1,0 +1,43 @@
+name: Build wpget Multi-Platform
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: wpget-linux
+            pyinstaller_args: --add-data "ui:ui" --add-data "core:core" --add-data "assets:assets" --add-data "bin:bin"
+          - os: windows-latest
+            artifact_name: wpget-windows.exe
+            pyinstaller_args: --add-data "ui;ui" --add-data "core;core" --add-data "assets;assets" --add-data "bin;bin"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install customtkinter pillow requests pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --noconfirm --onefile --windowed ${{ matrix.pyinstaller_args }} --name "wpget" main.py
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/wpget*

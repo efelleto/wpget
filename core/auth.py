@@ -16,7 +16,6 @@ class SteamAuth:
         self._stopped = False
 
     def start_qr_login(self):
-        """Inicia o processo de login via QR Code em uma thread separada."""
         def run():
             try:
                 os.chmod(self.bin_path, 0o755)
@@ -44,7 +43,7 @@ class SteamAuth:
                 qr_lines = []
                 capturing_qr = False
                 last_qr_send_time = 0
-                qr_cooldown = 1.5  # Evita enviar QR duplicado muito rápido
+                qr_cooldown = 1.5  
 
                 for line in iter(self.process.stdout.readline, ""):
                     with self._lock:
@@ -57,7 +56,6 @@ class SteamAuth:
                     print(line, end="")
                     clean_line = line.rstrip("\n")
 
-                    # Detecta linhas do QR code (caracteres de bloco)
                     is_qr_line = any(c in clean_line for c in ["█", "▄", "▀", "▌", "▐", "▖", "▗"])
 
                     if is_qr_line:
@@ -66,7 +64,6 @@ class SteamAuth:
                             qr_lines = []
                         qr_lines.append(clean_line)
                     else:
-                        # Linha não-QR após capturar = QR terminou, envia pro popup
                         if capturing_qr and qr_lines:
                             capturing_qr = False
                             current_time = time.time()
@@ -77,18 +74,15 @@ class SteamAuth:
                                 last_qr_send_time = current_time
                             qr_lines = []
 
-                    # Sucesso no login - extrai username da mensagem de sucesso
                     if "Logged in" in clean_line or "Success!" in clean_line:
                         self.log("authenticated! session saved.", "success")
-                        # Tenta extrair username da mensagem: "-username NOME -remember-password"
                         user_match = re.search(r"-username\s+(\S+)", clean_line)
                         username = user_match.group(1) if user_match else ""
                         self.status_callback(True, username)
                         if self.qr_callback:
-                            self.qr_callback(None)  # Fecha o popup
+                            self.qr_callback(None) 
                         break
 
-                    # Sessão já existente
                     if "Logging" in clean_line and "Steam3" in clean_line:
                         user_match = re.search(r"Logging in user '(.+?)'", clean_line)
                         if user_match:
@@ -110,13 +104,11 @@ class SteamAuth:
             finally:
                 self._cleanup()
 
-        # Inicia a thread
         thread = threading.Thread(target=run, daemon=True)
         thread.start()
         return thread
 
     def _cleanup(self):
-        """Encerra o processo do DepotDownloader de forma limpa."""
         with self._lock:
             self._stopped = True
             if self.process:
@@ -135,5 +127,4 @@ class SteamAuth:
                     self.process = None
 
     def stop(self):
-        """Método público para parar a autenticação."""
         self._cleanup()

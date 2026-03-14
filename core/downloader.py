@@ -37,7 +37,6 @@ class Downloader:
                 clean_line = line.strip()
                 if not clean_line: continue
                 
-                # Lógica de extração de porcentagem e status
                 percent_match = re.search(r"(\d+\.?\d*)%", clean_line)
                 if percent_match and self.progress_callback:
                     self.progress_callback(float(percent_match.group(1)), "downloading...")
@@ -54,3 +53,4 @@ class Downloader:
         except Exception as e:
             self.log(f"download error: {e}", "error")
             return False
+        

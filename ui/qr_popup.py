@@ -10,11 +10,9 @@ class QRPopup(ctk.CTkToplevel):
         self.configure(fg_color=COLORS["bg"])
         self.resizable(False, False)
 
-        # Mantém o popup na frente
         self.attributes("-topmost", True)
         self.transient(parent)
 
-        # Instrução
         self.info_label = ctk.CTkLabel(
             self,
             text="scan with the Steam mobile app to login",
@@ -31,8 +29,6 @@ class QRPopup(ctk.CTkToplevel):
         )
         self.sub_label.pack(pady=(0, 12))
 
-        # Caixa onde o QR ASCII vai ser exibido
-        # Usa fonte Courier que tem largura fixa para todos os caracteres
         self.qr_box = ctk.CTkTextbox(
             self,
             fg_color=COLORS["log_bg"],
@@ -46,25 +42,19 @@ class QRPopup(ctk.CTkToplevel):
         )
         self.qr_box.pack(padx=20, pady=(0, 20))
 
-        # Remove espaçamento entre linhas para o QR ficar alinhado
-        # spacing1=0 (antes da linha), spacing2=0 (entre linhas), spacing3=0 (depois da linha)
+
         self.qr_box._textbox.configure(spacing1=0, spacing2=0, spacing3=0)
-        # Garante que a fonte interna também seja monoespaçada
         self.qr_box._textbox.configure(font=("Courier", 10, "normal"))
         self.qr_box.configure(state="disabled")
 
-        # Força o foco após criar
         self.after(100, self._force_focus)
 
     def _force_focus(self):
-        """Força o foco e elevação da janela no Linux."""
         self.lift()
         self.focus_force()
-        # Mantém topmost por 2 segundos depois permite perder foco
         self.after(2000, lambda: self.attributes("-topmost", False))
 
     def update_qr(self, qr_text):
-        """Atualiza o QR code exibido."""
         if not self.winfo_exists():
             return
 

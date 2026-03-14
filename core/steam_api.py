@@ -6,13 +6,11 @@ from bs4 import BeautifulSoup
 class SteamAPI:
     @staticmethod
     def extract_id(url):
-        """Extrai o ID numérico da URL do Steam Workshop."""
         match = re.search(r"id=(\d+)", url)
         return match.group(1) if match else None
 
     @staticmethod
     def get_metadata(item_id):
-        """Recupera informações detalhadas do wallpaper via scraping."""
         url = f"https://steamcommunity.com/sharedfiles/filedetails/?id={item_id}"
 
         try:
@@ -50,7 +48,6 @@ class SteamAPI:
                 elif "scene" in tag_text:
                     wallpaper_type = "scene"
 
-            # Resolução - procura no texto da página
             resolution = "unknown"
             details = soup.find("div", class_="detailsStatsContainerRight")
             if details:

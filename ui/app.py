@@ -15,7 +15,6 @@ from core.downloader import Downloader
 from core.auth import SteamAuth
 
 def resource_path(relative_path):
-    """ Retorna o caminho absoluto para o recurso, compatível com PyInstaller e Dev """
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -45,10 +44,8 @@ class WPGetApp(ctk.CTk):
         self._fetch_in_progress = False
         self.last_download_path = None
 
-        # --- LOGICA CORRIGIDA PARA O ÍCONE ---
         self.steam_photo = None
         try:
-            # Busca o ícone usando resource_path para funcionar no .exe/.AppImage
             icon_path = resource_path(os.path.join("assets", "steam_icon.png"))
             if os.path.exists(icon_path):
                 img = Image.open(icon_path).convert("RGBA")
@@ -57,7 +54,6 @@ class WPGetApp(ctk.CTk):
         except Exception as e:
             print(f"Erro ao processar ícone: {e}")
 
-        # 1. Header & status
         self.header_label = ctk.CTkLabel(
             self, text="wpget", font=FONTS["title"], text_color=COLORS["accent"]
         )
@@ -91,7 +87,6 @@ class WPGetApp(ctk.CTk):
         self.login_btn.image = self.steam_photo
         self.login_btn.pack(side="left")
 
-        # 3. Download input
         self.input_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.input_frame.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
         self.input_frame.grid_columnconfigure(0, weight=1)
@@ -113,7 +108,6 @@ class WPGetApp(ctk.CTk):
         )
         self.download_btn.grid(row=0, column=1)
 
-        # 4. Preview Card
         self.preview_frame = ctk.CTkFrame(
             self, fg_color=COLORS["log_bg"], border_width=1, border_color="#24283b"
         )
@@ -161,7 +155,6 @@ class WPGetApp(ctk.CTk):
             command=self.clear_junk_action
         )
 
-        # 5. Progress Section
         self.progress_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.progress_frame.grid(row=5, column=0, padx=20, pady=(0, 10), sticky="ew")
         self.progress_frame.grid_remove()
@@ -180,7 +173,6 @@ class WPGetApp(ctk.CTk):
         )
         self.progress_status.pack(pady=(8, 0))
 
-        # 6. Console
         self.console_box = ctk.CTkTextbox(
             self, fg_color=COLORS["log_bg"], text_color=COLORS["text"],
             font=FONTS["console"], border_width=1, border_color="#24283b", height=150
@@ -303,7 +295,6 @@ class WPGetApp(ctk.CTk):
             if self.auth_instance:
                 self.auth_instance.stop()
         
-        # CAMINHO CORRIGIDO PARA O BINÁRIO
         bin_path = resource_path(os.path.join("bin", "linux", "DepotDownloader"))
         
         if not os.path.exists(bin_path):

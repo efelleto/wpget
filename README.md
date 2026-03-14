@@ -141,5 +141,3 @@ The Windows `.exe` is built automatically via GitHub Actions on every release pu
 ## License
 
 MIT - do whatever you want with it.
-
----

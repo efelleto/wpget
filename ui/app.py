@@ -304,7 +304,6 @@ class WPGetApp(ctk.CTk):
             if self.auth_instance:
                 self.auth_instance.stop()
         
-        # Detect OS and set correct binary name
         bin_name = "DepotDownloader.exe" if sys.platform == "win32" else "DepotDownloader"
         bin_path = resource_path(os.path.join("bin", bin_name))
         
@@ -328,13 +327,18 @@ class WPGetApp(ctk.CTk):
         self.progress_bar.set(0)
         self.progress_status.configure(text="initializing download...")
 
-        # Get correct bin_path for the Downloader
         bin_name = "DepotDownloader.exe" if sys.platform == "win32" else "DepotDownloader"
         bin_path = resource_path(os.path.join("bin", bin_name))
 
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
         def process():
-            temp_path = os.path.join(os.getcwd(), "temp", item_id)
+            temp_path = os.path.join(base_dir, "temp", item_id)
             os.makedirs(temp_path, exist_ok=True)
+            
             dl = Downloader(self.log, bin_path=bin_path, progress_callback=self.update_progress)
             success = dl.download_item(item_id, temp_path, self.current_steam_user)
             if success:
@@ -351,7 +355,7 @@ class WPGetApp(ctk.CTk):
         self.progress_status.configure(text=status_text.lower())
 
     def _download_success(self, folder_path):
-        self.last_download_path = folder_path
+        self.last_download_path = os.path.abspath(folder_path)
         self.progress_bar.set(1.0)
         self.progress_status.configure(text="download complete!")
         self.download_btn.configure(state="normal", fg_color=COLORS["accent"])
@@ -367,14 +371,48 @@ class WPGetApp(ctk.CTk):
 
     def open_folder_action(self):
         if self.last_download_path and os.path.exists(self.last_download_path):
+            abs_path = os.path.abspath(self.last_download_path)
+            self.log(f"opening folder: {abs_path}", "info")
+
             if sys.platform == "win32":
-                os.startfile(self.last_download_path)
+                os.startfile(abs_path)
             else:
-                subprocess.Popen(['xdg-open', self.last_download_path])
+                # PyInstaller sets LD_LIBRARY_PATH / LD_PRELOAD pointing to its
+                # own temp bundle dir. Child processes inherit these and fail
+                # silently when trying to load libs from a path that doesn't
+                # exist for them. Strip those vars before spawning the file manager.
+                clean_env = os.environ.copy()
+                for var in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
+                    clean_env.pop(var, None)
+                    clean_env.pop(f"{var}_ORIG", None)
+
+                def _try_open(cmd):
+                    subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        env=clean_env,
+                        start_new_session=True
+                    )
+
+                try:
+                    _try_open(['nemo', abs_path])
+                except FileNotFoundError:
+                    try:
+                        _try_open(['xdg-open', abs_path])
+                    except Exception as e:
+                        self.log(f"error opening folder: {e}", "error")
+                except Exception as e:
+                    self.log(f"error opening folder: {e}", "error")
 
     def clear_junk_action(self):
         try:
-            depots_path = os.path.join(os.getcwd(), "depots")
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.dirname(sys.executable)
+            else:
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                
+            depots_path = os.path.join(base_dir, "depots")
             if os.path.exists(depots_path):
                 shutil.rmtree(depots_path)
                 self.log("junk files (depots) cleared!", "success")

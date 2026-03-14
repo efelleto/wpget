@@ -15,3 +15,4 @@ build/
 # Logs de erro e auth
 *.log
 Steam Guard/
+wpget-linux

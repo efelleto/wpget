@@ -12,10 +12,12 @@ class Downloader:
         self.bin_path = bin_path
 
     def download_item(self, item_id, output_path, username):
+        # --- O BLOCO ABAIXO DEVE ESTAR IDENTADO ---
         if not self.bin_path:
             app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             self.bin_path = os.path.join(app_dir, "bin", "DepotDownloader")
 
+        # Garante permissão de execução (essencial no Linux Mint)
         if os.path.exists(self.bin_path) and sys.platform != "win32":
             try:
                 st = os.stat(self.bin_path)
@@ -23,16 +25,15 @@ class Downloader:
             except Exception as e:
                 self.log(f"warning: could not set executable permissions: {e}", "warning")
 
-        temp_dl_path = os.path.join(output_path, ".depot_temp")
-        os.makedirs(temp_dl_path, exist_ok=True)
-
+        # Comando com caminhos absolutos para evitar erro de permissão/diretório
         cmd = [
             self.bin_path,
             "-app", "431960",
             "-username", username,
             "-pubfile", item_id,
-            "-dir", output_path,
-            "-remember-password"
+            "-dir", os.path.abspath(output_path),
+            "-remember-password",
+            "-non-interactive"
         ]
 
         try:
@@ -41,19 +42,22 @@ class Downloader:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                bufsize=1
+                bufsize=1,
+                env=os.environ
             )
 
             for line in iter(process.stdout.readline, ""):
                 clean_line = line.strip()
                 if not clean_line: continue
                 
+                # Feedback visual do progresso
                 percent_match = re.search(r"(\d+\.?\d*)%", clean_line)
                 if percent_match and self.progress_callback:
                     self.progress_callback(float(percent_match.group(1)), "downloading...")
 
             process.wait()
             
+            # Limpeza de arquivos temporários do DepotDownloader
             for extra in [".DepotDownloader", "depots"]:
                 extra_path = os.path.join(output_path, extra)
                 if os.path.exists(extra_path):

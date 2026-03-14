@@ -37,6 +37,16 @@ Tired of bloated, janky scripts to download Wallpaper Engine wallpapers? **wpget
 
 ---
 
+## Screenshots
+ 
+| | |
+|:---:|:---:|
+| ![wpget main UI](https://i.imgur.com/nQCDtXq.png) | ![steam qr login](https://i.imgur.com/xduqEGP.png) |
+| main UI | steam qr login |
+ 
+---
+
+
 ## Output Format
 
 **wpget** downloads the raw workshop content, what you get depends on the wallpaper type:
